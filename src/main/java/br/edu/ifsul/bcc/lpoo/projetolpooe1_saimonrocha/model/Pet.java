@@ -1,32 +1,31 @@
 package br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model;
 
-import java.io.Serializable;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tb_pets")
-public class Pet implements Serializable {
+public class Pet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idPet;
+
     private String nome;
     private String raca;
 
     @ManyToOne
+    @JoinColumn(name = "id_pessoa") // Adiciona a referência para a tabela Pessoa
     private Pessoa pessoa;
 
-    @Enumerated(EnumType.STRING)
-    private Servico servico;
+    @ManyToMany
+    @JoinTable(name = "pet_servico", // Nome da tabela de relacionamento
+            joinColumns = @JoinColumn(name = "id_pet"),
+            inverseJoinColumns = @JoinColumn(name = "id_servico"))
+    private List<Servico> servicos = new ArrayList<>();
 
-    // getters e setters
+    // Getters e setters
     public Integer getIdPet() {
         return idPet;
     }
@@ -59,20 +58,20 @@ public class Pet implements Serializable {
         this.pessoa = pessoa;
     }
 
-    public Servico getServico() {
-        return servico;
+    public List<Servico> getServicos() {
+        return servicos;
     }
 
-    public void setServico(Servico servico) {
-        this.servico = servico;
+    public void setServicos(List<Servico> servicos) {
+        this.servicos = servicos;
     }
 
     // Método para calcular o valor total
     public double calcularValorTotal() {
-        if (servico != null) {
-            return servico.getValor();
+        double total = 0.0;
+        for (Servico servico : servicos) {
+            total += servico.getValor();
         }
-        return 0.0;
+        return total;
     }
-
 }

@@ -23,11 +23,10 @@ public class Pessoa implements Serializable {
     @Column(nullable = false, length = 100)
     private String nome;
 
-    @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Pet> pets = new ArrayList<>();
 
     // Métodos getters e setters
-
     public Integer getIdPessoa() {
         return idPessoa;
     }
@@ -44,6 +43,11 @@ public class Pessoa implements Serializable {
         this.cpf = cpf;
     }
 
+    @Override
+    public String toString() {
+        return nome;
+    }
+
     public String getNome() {
         return nome;
     }
@@ -58,5 +62,15 @@ public class Pessoa implements Serializable {
 
     public void setPets(List<Pet> pets) {
         this.pets = pets;
+    }
+
+    public void addPet(Pet pet) {
+        pets.add(pet);
+        pet.setPessoa(this); // Associa o pet à pessoa
+    }
+
+    public void removePet(Pet pet) {
+        pets.remove(pet);
+        pet.setPessoa(null); // Desassocia o pet da pessoa
     }
 }

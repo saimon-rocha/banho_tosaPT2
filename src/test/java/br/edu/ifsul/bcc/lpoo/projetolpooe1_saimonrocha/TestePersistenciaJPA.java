@@ -4,25 +4,21 @@ import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.dao.PersistenciaJPA;
 import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Pessoa;
 import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Pet;
 import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Servico;
-import java.util.Arrays;
-import java.util.List;
+import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.ServicoEnum;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * Classe de teste para verificar a persistência usando JPA. Autor: Saimon AS
- * Rocha
- */
+import java.util.Arrays;
+import java.util.List;
+
 public class TestePersistenciaJPA {
 
-    PersistenciaJPA jpa = new PersistenciaJPA();
-
-    public TestePersistenciaJPA() {
-    }
+    private PersistenciaJPA jpa;
 
     @Before
     public void setUp() {
+        jpa = new PersistenciaJPA();
         jpa.conexaoAberta();
         System.out.println("Conexão estabelecida com o banco de dados via JPA...");
     }
@@ -33,55 +29,58 @@ public class TestePersistenciaJPA {
     }
 
     @Test
-    public void testePersistenciaJPA() throws Exception {
-        // Criar e persistir várias pessoas e pets com serviços diferentes
-        cadastrarPessoaEPet(
-                "01485974", 
-                "Douglas",
-                "Belugo", 
-                "Pastor Alemao",
-                Arrays.asList(Servico.BANHO, Servico.TOSA));
-        cadastrarPessoaEPet(
-                "01485975",
-                "Douglas",
-                "Belvedere",
-                "Dog Argentino",
-                Arrays.asList(Servico.UNHAS, Servico.BANHO));
+    public void testCadastrarPessoaEPet() {
+        try {
+            cadastrarPessoaEPet("12345678900", "João da Silva", "Rex", "Labrador",
+                    Arrays.asList(ServicoEnum.BANHO, ServicoEnum.TOSA));
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Fail the test if an exception occurs
+            assert false;
+        }
     }
 
-    private void cadastrarPessoaEPet(String cpf, String nomePessoa, String nomePet, String racaPet, List<Servico> servicos) throws Exception {
+    private void cadastrarPessoaEPet(String cpf, String nomePessoa, String nomePet, String racaPet, List<ServicoEnum> servicosEnum) throws Exception {
         // Criar e persistir uma pessoa
         Pessoa pessoa = new Pessoa();
         pessoa.setCpf(cpf);
         pessoa.setNome(nomePessoa);
-
-        // Persistir a pessoa primeiro
         jpa.persist(pessoa);
+
+        // Criar um pet
+        Pet pet = new Pet();
+        pet.setNome(nomePet);
+        pet.setRaca(racaPet);
+        pet.setPessoa(pessoa);
 
         double valorTotal = 0.0;
 
         // Iterar sobre os serviços
-        for (Servico servico : servicos) {
-            // Criar e persistir um pet
-            Pet pet = new Pet();
-            pet.setNome(nomePet);
-            pet.setRaca(racaPet);
-            pet.setPessoa(pessoa);
-            pet.setServico(servico);
-            valorTotal += pet.calcularValorTotal();
+        for (ServicoEnum servicoEnum : servicosEnum) {
+            // Buscar o serviço correspondente no banco de dados
+            Servico servico = jpa.buscarServicoPorNome(servicoEnum.getNome());
 
-            // Persistir o pet para cada serviço
-            jpa.persist(pet);
+            if (servico == null) {
+                // Caso o serviço não exista, criar e persistir
+                servico = new Servico(servicoEnum.getNome(), servicoEnum.getValor());
+                jpa.persist(servico);
+            }
+
+            // Associar o serviço ao pet
+            pet.getServicos().add(servico);
+            valorTotal += servico.getValor(); // Adicionar o valor do serviço ao total
         }
+
+        // Persistir o pet uma única vez após adicionar todos os serviços
+        jpa.persist(pet);
 
         // Ficha
         System.out.println("====== Ficha Pet ======");
         System.out.println("Mamae ou Papai: " + pessoa.getNome());
         System.out.println("CPF: " + pessoa.getCpf());
-        System.out.println("Filhote: " + nomePet); // Ajuste para exibir o nome do pet fora do loop
-        System.out.println("Origem: " + racaPet); // Ajuste para exibir a raça do pet fora do loop
-        System.out.println("Descricao dos Servicos: " + servicos);
+        System.out.println("Filhote: " + nomePet);
+        System.out.println("Origem: " + racaPet);
+        System.out.println("Descricao dos Servicos: " + pet.getServicos());
         System.out.println("Valor Total: R$ " + valorTotal);
     }
-
 }
