@@ -163,4 +163,18 @@ public class PersistenciaJPA {
         List<Servico> servicos = query.getResultList();
         return servicos.isEmpty() ? null : servicos.get(0); // Retorna o primeiro resultado ou null se não encontrado
     }
+
+    public void atualizarPetServico(PetServico petServico) throws Exception {
+        EntityTransaction tx = entityManager.getTransaction();
+        try {
+            tx.begin();
+            entityManager.merge(petServico);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
+        }
+    }
 }

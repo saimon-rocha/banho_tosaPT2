@@ -4,17 +4,53 @@
  */
 package br.edu.ifsul.bcc.lpoo.projetolpooe1_view;
 
+import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Pet;
+import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Servico;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.TypedQuery;
+import javax.swing.DefaultListModel;
+
 /**
  *
  * @author Saimon AS Rocha
  */
 public class Home extends javax.swing.JFrame {
 
+    private EntityManagerFactory emf;
+
     /**
      * Creates new form Home
      */
     public Home() {
         initComponents();
+        emf = Persistence.createEntityManagerFactory("pu_pet"); // Inicializa o EntityManagerFactory
+        atualizarListaServicos();
+    }
+
+    private List<Pet> listarPetsComServicos() {
+        EntityManager em = emf.createEntityManager();
+        TypedQuery<Pet> query = em.createQuery("SELECT DISTINCT p FROM Pet p JOIN FETCH p.servicos", Pet.class);
+        List<Pet> pets = query.getResultList();
+        em.close();
+        return pets;
+    }
+
+    private void atualizarListaServicos() {
+        List<Pet> pets = listarPetsComServicos();
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        for (Pet pet : pets) {
+            for (Servico servico : pet.getServicos()) {
+                String item = pet.getNome() + " - " + servico.getNome();
+                // Adiciona somente se não estiver presente
+                if (!listModel.contains(item)) {
+                    listModel.addElement(item);
+                }
+            }
+        }
+        jListaServico.setModel(listModel);
     }
 
     /**
@@ -27,19 +63,22 @@ public class Home extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        jListaServico = new javax.swing.JList<>();
+        btnRemover = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jCliente = new javax.swing.JMenu();
         jServico = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
+        jScrollPane1.setViewportView(jListaServico);
+
+        btnRemover.setText("Remover");
+        btnRemover.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRemoverActionPerformed(evt);
+            }
         });
-        jScrollPane1.setViewportView(jList1);
 
         jCliente.setText("CLIENTE");
         jCliente.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -72,13 +111,19 @@ public class Home extends javax.swing.JFrame {
                 .addGap(47, 47, 47)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 304, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(49, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnRemover)
+                .addGap(157, 157, 157))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(38, 38, 38)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(53, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnRemover)
+                .addContainerGap(14, Short.MAX_VALUE))
         );
 
         pack();
@@ -91,12 +136,61 @@ public class Home extends javax.swing.JFrame {
     private void jClienteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jClienteMouseClicked
         Cliente telaCliente = new Cliente();
         telaCliente.setVisible(true);
+        atualizarListaServicos();
     }//GEN-LAST:event_jClienteMouseClicked
 
     private void jServicoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jServicoMouseClicked
         Servicos telaServico = new Servicos(this, true);
         telaServico.setVisible(true);
+        atualizarListaServicos();
+        
     }//GEN-LAST:event_jServicoMouseClicked
+
+    private void btnRemoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoverActionPerformed
+        // Obtém o serviço selecionado na lista
+        String selecionado = jListaServico.getSelectedValue();
+        if (selecionado != null) {
+            // Extraia o nome do pet e do serviço
+            String[] partes = selecionado.split(" - ");
+            if (partes.length == 2) {
+                String nomePet = partes[0];
+                String nomeServico = partes[1];
+
+                EntityManager em = emf.createEntityManager();
+                em.getTransaction().begin();
+                try {
+                    // Encontre o pet
+                    TypedQuery<Pet> petQuery = em.createQuery("SELECT p FROM Pet p WHERE p.nome = :nome", Pet.class);
+                    petQuery.setParameter("nome", nomePet);
+                    Pet pet = petQuery.getSingleResult();
+
+                    // Encontre o serviço
+                    TypedQuery<Servico> servicoQuery = em.createQuery("SELECT s FROM Servico s WHERE s.nome = :nome", Servico.class);
+                    servicoQuery.setParameter("nome", nomeServico);
+                    Servico servico = servicoQuery.getSingleResult();
+
+                    // Remove a associação do serviço do pet
+                    pet.getServicos().remove(servico);
+                    em.merge(pet);
+
+                    // Atualiza a lista após a remoção
+                    em.getTransaction().commit();
+                    // Atualiza a lista de serviços após a remoção
+                    atualizarListaServicos();
+                } catch (Exception e) {
+                    if (em.getTransaction().isActive()) {
+                        em.getTransaction().rollback();
+                    }
+                    e.printStackTrace();
+                } finally {
+                    em.close();
+                }
+            }
+        } else {
+            // Mostrar mensagem de erro ou alerta
+            javax.swing.JOptionPane.showMessageDialog(this, "Selecione um serviço para remover.");
+        }
+    }//GEN-LAST:event_btnRemoverActionPerformed
 
     /**
      * @param args the command line arguments
@@ -134,8 +228,9 @@ public class Home extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnRemover;
     private javax.swing.JMenu jCliente;
-    private javax.swing.JList<String> jList1;
+    private javax.swing.JList<String> jListaServico;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JMenu jServico;

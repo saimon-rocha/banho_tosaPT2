@@ -26,8 +26,18 @@ public class Servicos extends javax.swing.JDialog {
     public Servicos(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        this.petServico = petServico;
+        jpa = new PersistenciaJPA();
         listarServico();
         listarPet();
+        preencheCampos();
+    }
+
+    private void preencheCampos() {
+        if (petServico != null) {
+            cmbPet.setSelectedItem(petServico.getPet());
+            cmbServico.setSelectedItem(petServico.getServico());
+        }
     }
 
     //Preenche no campo da listagem de professores
@@ -83,21 +93,18 @@ public class Servicos extends javax.swing.JDialog {
     private void initComponents() {
 
         btnCadastrar = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
         cmbPet = new javax.swing.JComboBox<>();
         cmbServico = new javax.swing.JComboBox<>();
         jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        btnCadastrar.setText("Cadastrar");
+        btnCadastrar.setText("Salvar");
         btnCadastrar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCadastrarActionPerformed(evt);
             }
         });
-
-        jButton2.setText("Remover");
 
         jButton1.setText("Cancelar");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -111,19 +118,18 @@ public class Servicos extends javax.swing.JDialog {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(120, 120, 120)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(cmbPet, 0, 155, Short.MAX_VALUE)
-                    .addComponent(cmbServico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(61, 61, 61)
-                .addComponent(btnCadastrar)
-                .addGap(33, 33, 33)
-                .addComponent(jButton2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addGap(21, 21, 21))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(120, 120, 120)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(cmbPet, 0, 155, Short.MAX_VALUE)
+                            .addComponent(cmbServico, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(97, 97, 97)
+                        .addComponent(btnCadastrar)
+                        .addGap(55, 55, 55)
+                        .addComponent(jButton1)))
+                .addContainerGap(92, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -135,7 +141,6 @@ public class Servicos extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 58, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCadastrar)
-                    .addComponent(jButton2)
                     .addComponent(jButton1))
                 .addGap(77, 77, 77))
         );
@@ -150,7 +155,7 @@ public class Servicos extends javax.swing.JDialog {
         if (selectedPet != null && selectedServico != null) {
             petServico = new PetServico(selectedPet, selectedServico);
 
-            PersistenciaJPA jpa = new PersistenciaJPA(); // Instanciar dentro do bloco try
+            PersistenciaJPA jpa = new PersistenciaJPA();
             try {
                 jpa.abrirConexao();
                 jpa.salvarPetServico(petServico); // Ajuste para salvar no banco de dados
@@ -226,6 +231,5 @@ public class Servicos extends javax.swing.JDialog {
     private javax.swing.JComboBox<Pet> cmbPet;
     private javax.swing.JComboBox<Servico> cmbServico;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     // End of variables declaration//GEN-END:variables
 }
