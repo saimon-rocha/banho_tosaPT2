@@ -58,11 +58,11 @@ public class TestePersistenciaJPA {
         // Iterar sobre os serviços
         for (ServicoEnum servicoEnum : servicosEnum) {
             // Buscar o serviço correspondente no banco de dados
-            Servico servico = jpa.buscarServicoPorNome(servicoEnum.getNome());
+            Servico servico = jpa.buscarServicoPorNome(servicoEnum.name());
 
             if (servico == null) {
                 // Caso o serviço não exista, criar e persistir
-                servico = new Servico(servicoEnum.getNome(), servicoEnum.getValor());
+                servico = new Servico(servicoEnum.name(), servicoEnum.getValor());
                 jpa.persist(servico);
             }
 

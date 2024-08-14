@@ -94,7 +94,7 @@ public class Home extends javax.swing.JFrame {
     }//GEN-LAST:event_jClienteMouseClicked
 
     private void jServicoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jServicoMouseClicked
-        Servico telaServico = new Servico(this, true);
+        Servicos telaServico = new Servicos(this, true);
         telaServico.setVisible(true);
     }//GEN-LAST:event_jServicoMouseClicked
 

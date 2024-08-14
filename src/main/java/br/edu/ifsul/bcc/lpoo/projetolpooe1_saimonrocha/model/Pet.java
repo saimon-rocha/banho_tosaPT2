@@ -74,4 +74,9 @@ public class Pet {
         }
         return total;
     }
+
+    @Override
+    public String toString() {
+        return nome; // Retorna o nome do pet como representação textual
+    }
 }

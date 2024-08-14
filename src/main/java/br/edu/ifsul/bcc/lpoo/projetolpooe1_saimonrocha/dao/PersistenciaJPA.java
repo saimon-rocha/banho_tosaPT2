@@ -2,12 +2,12 @@ package br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.dao;
 
 import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Pessoa;
 import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Pet;
+import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.PetServico;
 import br.edu.ifsul.bcc.lpoo.projetolpooe1_saimonrocha.model.Servico;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -117,5 +117,50 @@ public class PersistenciaJPA {
         Query query = entityManager.createQuery("SELECT p FROM Pet p WHERE p.pessoa = :pessoa", Pet.class);
         query.setParameter("pessoa", pessoa);
         return query.getResultList();
+    }
+
+    public List<Pet> getPets() throws Exception {
+        if (!conexaoAberta()) {
+            abrirConexao(); // Garante que a conexão esteja aberta
+        }
+        // Consulta para obter todos os pets que têm uma pessoa associada
+        Query query = entityManager.createQuery(
+                "SELECT p FROM Pet p WHERE p.pessoa IS NOT NULL", Pet.class);
+        return query.getResultList();
+    }
+
+    public List<Servico> getServico() throws Exception {
+        if (!conexaoAberta()) {
+            abrirConexao(); // Garante que a conexão esteja aberta
+        }
+        TypedQuery<Servico> query = entityManager.createQuery(
+                "SELECT s FROM Servico s", Servico.class);
+        return query.getResultList();
+    }
+
+    public void salvarPetServico(PetServico petServico) {
+        EntityTransaction tx = entityManager.getTransaction();
+        try {
+            tx.begin();
+            // Adicione a lógica para salvar a associação PetServico
+            entityManager.persist(petServico);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+
+    public Servico buscarServicoPorNome(String nome) throws Exception {
+        if (!conexaoAberta()) {
+            abrirConexao(); // Garante que a conexão esteja aberta
+        }
+        TypedQuery<Servico> query = entityManager.createQuery(
+                "SELECT s FROM Servico s WHERE s.nome = :nome", Servico.class);
+        query.setParameter("nome", nome);
+        List<Servico> servicos = query.getResultList();
+        return servicos.isEmpty() ? null : servicos.get(0); // Retorna o primeiro resultado ou null se não encontrado
     }
 }
